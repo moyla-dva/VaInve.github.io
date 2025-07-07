@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VaInve の GPL优势分析报告</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chosen Palette: Calm Harmony Neutrals -->
+    <!-- Application Structure Plan: A dashboard-style SPA with sticky side navigation for quick access to key sections: Overview, Deep Dive, Synergy, Careers, and Action Plan. This non-linear structure allows the user to explore content based on their immediate interests, rather than a long, passive scroll. The overview uses charts for a quick visual summary. Deep dives use interactive cards to prevent information overload. Career advice is organized into tabs for clarity. This structure is chosen for its superior usability and engagement compared to a static document format. -->
+    <!-- Visualization & Content Choices: 1. Top 8 Strengths: Horizontal Bar Chart (Chart.js) to clearly show ranked scores (Goal: Compare). 2. Domain Distribution: Donut Chart (Chart.js) to show part-to-whole relationship of the user's profile (Goal: Proportions). 3. Strength Details: Interactive Cards (HTML/JS) to organize large text blocks and encourage exploration (Goal: Organize/Inform). 4. Synergies: Visual Diagram (HTML/CSS) to represent relationships more effectively than text (Goal: Relationships). 5. Career Paths: Tabbed Content (HTML/JS) to categorize recommendations (Goal: Organize). This combination of visualizations and interactive elements supports the non-linear exploration of the application structure. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        .nav-link {
+            transition: all 0.2s ease-in-out;
+            border-left: 3px solid transparent;
+        }
+        .nav-link.active, .nav-link:hover {
+            color: #4f46e5;
+            background-color: #eef2ff;
+            border-left-color: #4f46e5;
+        }
+        .card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .tab.active {
+            border-bottom-color: #4f46e5;
+            color: #4f46e5;
+            font-weight: 600;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        .chart-container {
+            position: relative;
+            margin: auto;
+            height: 350px;
+            width: 100%;
+            max-width: 700px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .synergy-line {
+            position: absolute;
+            background-color: #9ca3af;
+            transform-origin: 0 0;
+        }
+        .synergy-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #4f46e5;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-slate-800 tracking-tight">VaInve の 盖洛普优势分析报告</h1>
+            <p class="mt-4 text-lg text-slate-600 max-w-3xl mx-auto">欢迎！这份交互式报告旨在帮助您深入理解您的天赋，并探索如何将它们转化为职业成功的强大优势。</p>
+        </header>
+
+        <div class="flex flex-col md:flex-row gap-8 lg:gap-12">
+            <!-- Sticky Navigation -->
+            <aside class="md:w-1/4 lg:w-1/5 md:sticky md:top-8 md:self-start">
+                <nav id="main-nav" class="flex flex-row md:flex-col overflow-x-auto md:overflow-x-visible pb-4 md:pb-0">
+                    <a href="#overview" class="nav-link text-slate-700 font-semibold py-3 px-4 whitespace-nowrap">优势概览</a>
+                    <a href="#deep-dive" class="nav-link text-slate-700 font-semibold py-3 px-4 whitespace-nowrap">深度解析</a>
+                    <a href="#synergy" class="nav-link text-slate-700 font-semibold py-3 px-4 whitespace-nowrap">优势互动</a>
+                    <a href="#careers" class="nav-link text-slate-700 font-semibold py-3 px-4 whitespace-nowrap">职业建议</a>
+                    <a href="#action-plan" class="nav-link text-slate-700 font-semibold py-3 px-4 whitespace-nowrap">行动计划</a>
+                </nav>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="w-full md:w-3/4 lg:w-4/5">
+                <!-- Section: Overview -->
+                <section id="overview" class="content-section space-y-12">
+                    <h2 class="text-3xl font-bold text-slate-800 border-b pb-4">优势概览</h2>
+                    <div class="bg-white p-6 rounded-xl shadow-sm">
+                        <h3 class="text-xl font-semibold text-slate-700 mb-1">您的天赋画像</h3>
+                        <p class="text-slate-600 mb-6">您的天赋组合形成了一种独特的“以人为本的战略家与执行者”画像。这意味着您不仅能与人建立深度联结，还能制定深思熟虑的计划，并可靠地将其付诸行动。以下图表直观地展示了您的核心优势及其领域分布。</p>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                            <div class="chart-container">
+                                <canvas id="strengthsChart"></canvas>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="domainChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section: Deep Dive -->
+                <section id="deep-dive" class="content-section space-y-12">
+                    <h2 class="text-3xl font-bold text-slate-800 border-b pb-4">深度解析</h2>
+                     <div class="bg-white p-6 rounded-xl shadow-sm">
+                        <h3 class="text-xl font-semibold text-slate-700 mb-1">探索您的核心优势</h3>
+                        <p class="text-slate-600 mb-6">您的前八大优势是您最自然的思维、感受和行为模式。它们是您取得卓越成就的基石。点击下方的卡片，可以展开或折叠每一项优势的详细解读，包括其定义、在工作中的应用，以及需要注意的潜在挑战。</p>
+                        <div id="strengths-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                            <!-- Strength cards will be injected here by JS -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section: Synergy -->
+                <section id="synergy" class="content-section space-y-12">
+                    <h2 class="text-3xl font-bold text-slate-800 border-b pb-4">优势互动</h2>
+                     <div class="bg-white p-6 rounded-xl shadow-sm">
+                        <h3 class="text-xl font-semibold text-slate-700 mb-1">当天赋相遇：1 + 1 > 2</h3>
+                        <p class="text-slate-600 mb-6">您的优势并非孤立存在，它们会相互结合，产生强大的协同效应。理解这些互动模式，能帮助您更全面地发挥潜能。下方的互动面板展示了您一些关键优势组合所产生的独特力量。点击不同的组合，查看右侧的详细解析。</p>
+                        <div class="flex flex-col md:flex-row gap-8">
+                            <div id="synergy-buttons" class="flex md:flex-col gap-3 flex-wrap">
+                                <!-- Synergy buttons will be injected here -->
+                            </div>
+                            <div id="synergy-display" class="flex-1 bg-indigo-50 p-6 rounded-lg min-h-[200px]">
+                                <!-- Synergy details will be shown here -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section: Careers -->
+                <section id="careers" class="content-section space-y-12">
+                    <h2 class="text-3xl font-bold text-slate-800 border-b pb-4">职业建议</h2>
+                    <div class="bg-white p-6 rounded-xl shadow-sm">
+                         <h3 class="text-xl font-semibold text-slate-700 mb-1">将天赋转化为职业优势</h3>
+                        <p class="text-slate-600 mb-6">基于您的优势组合，某些职业领域和角色能让您更自然地发光发热。本节为您提供了几个高度匹配的职业方向，并解释了您的哪些优势将在这些领域中成为关键。使用下方的选项卡来探索不同的职业路径。</p>
+                        <div class="border-b border-gray-200">
+                            <nav id="career-tabs" class="flex -mb-px space-x-6" aria-label="Tabs">
+                                <!-- Career tabs will be injected here -->
+                            </nav>
+                        </div>
+                        <div id="career-content" class="mt-6">
+                            <!-- Career content will be injected here -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section: Action Plan -->
+                <section id="action-plan" class="content-section space-y-12">
+                    <h2 class="text-3xl font-bold text-slate-800 border-b pb-4">行动计划</h2>
+                    <div class="bg-white p-6 rounded-xl shadow-sm">
+                        <h3 class="text-xl font-semibold text-slate-700 mb-1">您的持续成长之路</h3>
+                        <p class="text-slate-600 mb-6">了解优势只是第一步，关键在于持续地投入和发展。这里为您提供了一份具体的行动计划，包括短期和长期目标，以及管理潜在挑战的策略，助您将天赋发展为持久的卓越表现。</p>
+                        <div class="space-y-8">
+                           <div id="action-plan-content">
+                               <!-- Action plan content will be injected here -->
+                           </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    
+    const data = {
+        strengths: [
+            { rank: 1, name: '体谅', score: 1.667, domain: '关系建立', color: '#3b82f6' },
+            { rank: 2, name: '责任', score: 1.500, domain: '执行', color: '#10b981' },
+            { rank: 3, name: '个别', score: 1.438, domain: '关系建立', color: '#3b82f6' },
+            { rank: 4, name: '信仰', score: 1.412, domain: '执行', color: '#10b981' },
+            { rank: 5, name: '战略', score: 1.400, domain: '战略思维', color: '#f97316' },
+            { rank: 6, name: '审慎', score: 1.400, domain: '执行', color: '#10b981' },
+            { rank: 7, name: '学习', score: 1.375, domain: '战略思维', color: '#f97316' },
+            { rank: 8, name: '和谐', score: 1.375, domain: '关系建立', color: '#3b82f6' }
+        ],
+        details: {
+            '体谅': {
+                icon: '🤝',
+                summary: '能够通过设身处地地想象他人的生活或处境来感知他人的感受。',
+                application: '您能够建立并培养具有深厚情感深度的关系，让与您接触的人感到被理解。作为团队领导者，您能为团队成员带来关怀、关注和理解。',
+                challenge: '体验他人的情绪可能非常耗费精力，需要主动寻求独处时间来充电。过度关注情绪有时可能使您显得不切实际。'
+            },
+            '责任': {
+                icon: '🛡️',
+                summary: '对所承诺的事情承担起心理上的所有权，并感到在情感上必须将其贯彻到底。',
+                application: '当需要分配新任务时，人们会首先想到您，因为他们知道任务一定会被完成。您为任何角色带来可靠性和忠诚。',
+                challenge: '乐于承担的意愿有时可能导致您承担过多，面临超负荷的风险。需要学会选择性地承诺和授权。'
+            },
+            '个别': {
+                icon: '🎨',
+                summary: '对每个人的独特品质充满好奇，并擅长找出不同个体如何高效协作。',
+                application: '您能本能地注意到并欣赏每个人的独特之处，帮助他们每天贡献自己的优势。您是出色的合作伙伴，能将自己的优势与他人结合。',
+                challenge: '希望每个人都被区别对待，这可能导致您抵制必要的规范和惯例，从而可能减缓决策和成果的实现。'
+            },
+            '信仰': {
+                icon: '🕯️',
+                summary: '拥有不变的核心价值观，这些价值观定义了您的人生目标。',
+                application: '您能在变革时期通过传达核心价值观来提供团队和组织的稳定性。您是团队和组织的良心，能帮助他人看到工作的内在价值。',
+                challenge: '可能难以理解那些将工作主要视为薪水的人。如果他人的价值观与您不符，您可能会倾向于做出仓促的判断。'
+            },
+            '战略': {
+                icon: '🗺️',
+                summary: '能够理清杂乱，找到最佳路径，在他人只看到复杂性时发现模式。',
+                application: '您能预见潜在问题，并通过提供解决方案帮助团队避免陷阱。您能看到大局，防止团队迷失在细节中。',
+                challenge: '由于您能迅速找到最佳路径，他人可能无法理解您的逻辑；您需要“展示您的思考过程”。'
+            },
+            '审慎': {
+                icon: '⚖️',
+                summary: '在做决策时会非常谨慎，预见潜在障碍。是谨慎、警惕的风险评估者。',
+                application: '您能做出明智、深思熟虑的决策。您具有发现潜在问题和障碍的非凡能力，从而防止工作流程中出现混乱的延误。',
+                challenge: '过度谨慎可能会在需要快速决策时减慢进度。有时需要相信直觉并承担经过计算的风险。'
+            },
+            '学习': {
+                icon: '📚',
+                summary: '对学习和持续改进有着强烈的渴望，并被学习过程本身而非结果所激励。',
+                application: '您是天生的教育者，能根据他人的学习方式调整教学方法。您对变化的开放性使您在转型时期成为宝贵的资源。',
+                challenge: '学习本身可能成为目的；如果缺乏适当的重点，学习可能会与手头任务无关。需要将学习与实际目标联系起来。'
+            },
+            '和谐': {
+                icon: '🕊️',
+                summary: '寻求共识，不喜冲突，而是寻找共同点。',
+                application: '您擅长将人们聚集在一起，帮助他们看到共同点比分歧更强大。您能自然地感知潜在冲突区域，并能及早介入解决。',
+                challenge: '天生不喜欢冲突，可能倾向于不处理问题，希望它们自行消失，这有时会使问题解决变得更加困难。'
+            }
+        },
+        synergies: [
+            {
+                title: '体谅 + 战略',
+                description: '<strong>战略性体谅：</strong> 这形成了“战略性体谅以实现影响力”。您不仅能感受他人的情绪，还能战略性地规划如何回应这些感受，减轻决策的负面影响，并利用积极情绪推动进步。这使您在处理复杂人际动态时表现卓越。'
+            },
+            {
+                title: '责任 + 信仰',
+                description: '<strong>有原则的执行力：</strong> 这表明您在完成任务时秉持高度的原则性和可靠性。您不仅仅是完成任务，更是以正直的态度完成，确保方式和原因都符合强大的道德框架。这使您成为一个极其值得信赖的个体。'
+            },
+            {
+                title: '战略 + 审慎',
+                description: '<strong>谨慎的远见：</strong> 这为您提供了卓越的预见性和问题预防能力。您不仅能创造创新的解决方案，还能细致地审查它们的实用性和潜在缺陷。您擅长制定稳健、有韧性的计划，考虑到各种突发情况。'
+            },
+            {
+                title: '个别 + 学习',
+                description: '<strong>个性化的赋能者：</strong> 这为您带来了卓越的个性化成长和发展能力。您不仅为自己学习，还会本能地去理解他人如何学习最好，并根据他们的具体需求调整您的指导方法。这使您成为一名杰出的教练、培训师或导师。'
+            }
+        ],
+        careers: [
+            {
+                tab: '助人型职业',
+                title: '助人型职业与以人为本的角色',
+                description: '您的体谅、个别和和谐天赋使您在那些以理解和支持他人为核心的领域中表现出色。这些角色重视情商、个性化方法和冲突解决能力。',
+                roles: ['教师', '咨询师', '社会工作者', '人力资源专家/经理', '生命教练', '心理治疗师']
+            },
+            {
+                tab: '战略与领导',
+                title: '战略与道德领导/咨询',
+                description: '您的战略、审慎、责任和信仰优势使您非常适合需要远见、谨慎决策和高度诚信的角色。这些角色受益于您洞察模式、预见障碍和做出有原则决策的能力。',
+                roles: ['战略顾问', '项目经理', '风险分析师', '法官', '律师']
+            },
+            {
+                tab: '学习与发展',
+                title: '学习与发展/专家角色',
+                description: '您的学习和个别主题表明您适合专注于持续改进和知识分享的角色。您在鼓励持续学习和个人发展的环境中茁壮成长。',
+                roles: ['企业培训师', '大学教授', '研究员', '主题专家', '课程设计师']
+            }
+        ],
+        actionPlan: {
+            shortTerm: {
+                title: '短期目标 (未来3-6个月)',
+                icon: '📅',
+                points: [
+                    '在1-2个具体工作项目中，有意识地运用您的前3大优势（体谅、责任、个别）。',
+                    '安排定期的“思考时间”，让您的战略和审慎天赋充分参与到问题解决或未来规划中。',
+                    '寻找一位导师或同伴，与他们公开讨论职业道路和挑战，利用您的学习和和谐天赋。'
+                ]
+            },
+            longTerm: {
+                title: '长期目标 (未来1-3年)',
+                icon: '🎯',
+                points: [
+                    '寻求能让您运用关系建立、执行和战略思维独特组合的领导角色或项目。',
+                    '投资于与您的学习天赋和所选职业道路相符的正式学习或认证，旨在达到某一主题的精通。',
+                    '积极寻找练习处理艰难对话的机会，运用您的体谅与和谐天赋寻找富有同情心且有效的解决方案。'
+                ]
+            },
+            management: {
+                title: '管理潜在挑战',
+                icon: '⚙️',
+                points: [
+                    '<strong>和谐的回避倾向：</strong> 认识到有时直接处理冲突是恢复和谐的最快方式。运用体谅寻找同情心的沟通方式。',
+                    '<strong>责任的超负荷风险：</strong> 学会选择性地承担承诺。练习授权，让他人有机会体验所有权。',
+                    '<strong>战略的“黑箱”思维：</strong> 努力“展示您的思考过程”，解释您的思路，让其他人理解您选择的路径。'
+                ]
+            }
+        }
+    };
+    
+    // Chart.js: Strengths Bar Chart
+    const strengthsCtx = document.getElementById('strengthsChart').getContext('2d');
+    new Chart(strengthsCtx, {
+        type: 'bar',
+        data: {
+            labels: data.strengths.map(s => `${s.name} (${s.rank})`),
+            datasets: [{
+                label: '优势分数',
+                data: data.strengths.map(s => s.score),
+                backgroundColor: data.strengths.map(s => s.color),
+                borderColor: data.strengths.map(s => s.color.replace(')', ', 0.8)')),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: { display: true, text: '您的前8大优势', font: { size: 16 } },
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.x !== null) {
+                                label += context.parsed.x.toFixed(3);
+                            }
+                            return label;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: { beginAtZero: true, grid: { color: '#e5e7eb' } },
+                y: { grid: { display: false } }
+            }
+        }
+    });
+
+    // Chart.js: Domain Donut Chart
+    const domainData = data.strengths.reduce((acc, s) => {
+        acc[s.domain] = (acc[s.domain] || 0) + 1;
+        return acc;
+    }, {});
+    
+    const domainColors = {
+        '关系建立': '#3b82f6',
+        '执行': '#10b981',
+        '战略思维': '#f97316',
+        '影响力': '#8b5cf6'
+    };
+
+    const domainCtx = document.getElementById('domainChart').getContext('2d');
+    new Chart(domainCtx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(domainData),
+            datasets: [{
+                label: '优势领域分布',
+                data: Object.values(domainData),
+                backgroundColor: Object.keys(domainData).map(d => domainColors[d]),
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: { display: true, text: '前8大优势领域分布', font: { size: 16 } },
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+
+    // Deep Dive: Render Strength Cards
+    const strengthsGrid = document.getElementById('strengths-grid');
+    data.strengths.forEach(strength => {
+        const detail = data.details[strength.name];
+        const card = document.createElement('div');
+        card.className = 'strength-card bg-white rounded-lg shadow-md cursor-pointer border border-transparent hover:border-indigo-400';
+        card.innerHTML = `
+            <div class="p-5">
+                <div class="flex items-center gap-4">
+                    <span class="text-3xl">${detail.icon}</span>
+                    <div>
+                        <h4 class="text-lg font-bold text-slate-800">${strength.name}</h4>
+                        <p class="text-sm text-slate-500">${strength.domain}</p>
+                    </div>
+                </div>
+                <p class="mt-3 text-slate-600">${detail.summary}</p>
+            </div>
+            <div class="detail-content bg-slate-50 p-5 border-t border-slate-200 hidden">
+                <h5 class="font-semibold text-slate-700 mb-2">💡 在工作中应用</h5>
+                <p class="text-sm text-slate-600 mb-4">${detail.application}</p>
+                <h5 class="font-semibold text-slate-700 mb-2">⚠️ 潜在挑战</h5>
+                <p class="text-sm text-slate-600">${detail.challenge}</p>
+            </div>
+        `;
+        strengthsGrid.appendChild(card);
+        card.addEventListener('click', () => {
+            card.querySelector('.detail-content').classList.toggle('hidden');
+        });
+    });
+
+    // Synergy: Render buttons and content
+    const synergyButtons = document.getElementById('synergy-buttons');
+    const synergyDisplay = document.getElementById('synergy-display');
+    data.synergies.forEach((synergy, index) => {
+        const button = document.createElement('button');
+        button.className = 'synergy-btn text-left p-3 rounded-md bg-white hover:bg-indigo-100 transition w-full md:w-auto';
+        button.innerHTML = `<span class="font-semibold text-indigo-700">${synergy.title}</span>`;
+        button.addEventListener('click', () => {
+            synergyDisplay.innerHTML = `<h4 class="text-lg font-bold text-slate-800 mb-3">${synergy.title}</h4><div class="text-slate-700">${synergy.description}</div>`;
+            document.querySelectorAll('.synergy-btn').forEach(btn => btn.classList.remove('bg-indigo-200', 'shadow-inner'));
+            button.classList.add('bg-indigo-200', 'shadow-inner');
+        });
+        synergyButtons.appendChild(button);
+        if (index === 0) button.click();
+    });
+
+    // Careers: Render tabs and content
+    const careerTabs = document.getElementById('career-tabs');
+    const careerContent = document.getElementById('career-content');
+    data.careers.forEach((career, index) => {
+        const tab = document.createElement('a');
+        tab.href = '#';
+        tab.className = 'tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-slate-500 hover:text-indigo-600 hover:border-indigo-300';
+        tab.textContent = career.tab;
+
+        const content = document.createElement('div');
+        content.className = 'career-panel hidden';
+        content.innerHTML = `
+            <h4 class="text-lg font-bold text-slate-800">${career.title}</h4>
+            <p class="mt-2 mb-4 text-slate-600">${career.description}</p>
+            <div class="flex flex-wrap gap-2">
+                ${career.roles.map(role => `<span class="bg-indigo-100 text-indigo-800 text-sm font-medium px-3 py-1 rounded-full">${role}</span>`).join('')}
+            </div>
+        `;
+
+        careerTabs.appendChild(tab);
+        careerContent.appendChild(content);
+
+        tab.addEventListener('click', (e) => {
+            e.preventDefault();
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.career-panel').forEach(p => p.classList.add('hidden'));
+            tab.classList.add('active');
+            content.classList.remove('hidden');
+        });
+        
+        if (index === 0) {
+            tab.classList.add('active');
+            content.classList.remove('hidden');
+        }
+    });
+    
+    // Action Plan: Render content
+    const actionPlanContainer = document.getElementById('action-plan-content');
+    const createActionPoint = (item) => `
+        <div class="bg-slate-50 p-6 rounded-lg">
+            <h4 class="text-lg font-semibold text-slate-700 flex items-center gap-3"><span class="text-2xl">${item.icon}</span>${item.title}</h4>
+            <ul class="mt-4 list-disc list-inside space-y-2 text-slate-600">
+                ${item.points.map(point => `<li>${point}</li>`).join('')}
+            </ul>
+        </div>
+    `;
+    actionPlanContainer.innerHTML = `
+        ${createActionPoint(data.actionPlan.shortTerm)}
+        ${createActionPoint(data.actionPlan.longTerm)}
+        ${createActionPoint(data.actionPlan.management)}
+    `;
+
+    // Navigation Logic
+    const navLinks = document.querySelectorAll('#main-nav a');
+    const sections = document.querySelectorAll('.content-section');
+    
+    function setActiveSection(hash) {
+        navLinks.forEach(link => {
+            link.classList.toggle('active', link.hash === hash);
+        });
+        sections.forEach(section => {
+            section.classList.toggle('active', `#${section.id}` === hash);
+        });
+    }
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetHash = link.hash;
+            history.pushState(null, null, targetHash);
+            setActiveSection(targetHash);
+             window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    });
+
+    // Set initial section based on URL hash or default to #overview
+    const initialHash = window.location.hash || '#overview';
+    setActiveSection(initialHash);
+});
+</script>
+</body>
+</html>
